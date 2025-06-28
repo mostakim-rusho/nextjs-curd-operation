@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 
 export default function BlogPage() {
   const [blogs, setBlogs] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetch('/api/blogs')
@@ -13,17 +14,29 @@ export default function BlogPage() {
       })
       .then(data => setBlogs(Array.isArray(data) ? data : []))
       .catch(() => setBlogs([]))
+      .finally(() => setLoading(false)) // loading false regardless of success or error
   }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex flex-col items-center py-12">
       <div className="w-full max-w-2xl">
         <h1 className="text-3xl font-bold text-center mb-10 text-blue-700">BayFi Blog</h1>
-        {blogs.length === 0 && (
+
+        {/* Loading Spinner */}
+        {loading && (
+          <div className="flex justify-center items-center py-10">
+            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
+
+        {/* No Blogs */}
+        {!loading && blogs.length === 0 && (
           <p className="text-center text-gray-500">No blog posts yet.</p>
         )}
+
+        {/* Blogs */}
         <div className="space-y-6">
-          {blogs.map(blog => (
+          {!loading && blogs.map(blog => (
             <div
               key={blog._id}
               className="bg-blue-200 border border-blue-300 rounded-2xl shadow-md px-6 py-4"
@@ -34,6 +47,8 @@ export default function BlogPage() {
           ))}
         </div>
       </div>
+
+      {/* Home Button */}
       <Link
         className="mt-12 bg-purple-500 hover:bg-purple-600 text-white text-lg font-semibold px-8 py-3 rounded-3xl shadow-lg transition"
         href="/"
