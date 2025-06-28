@@ -1,8 +1,12 @@
 'use client'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function AdminPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(true)
+
   // Announcements state
   const [announcements, setAnnouncements] = useState([])
   const [aForm, setAForm] = useState({ title: '', content: '' })
@@ -13,19 +17,34 @@ export default function AdminPage() {
   const [bForm, setBForm] = useState({ title: '', content: '' })
   const [bEditId, setBEditId] = useState(null)
 
+  // --- Client-side Auth check ---
+  useEffect(() => {
+    fetch('/api/check-auth', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.authenticated) {
+          window.location.href = '/login'
+        } else {
+          setLoading(false)
+        }
+      })
+  }, [])
+
   // Fetch announcements
   useEffect(() => {
-    fetch('/api/announcements')
-      .then(res => res.json())
-      .then(setAnnouncements)
-  }, [])
+    if (!loading)
+      fetch('/api/announcements')
+        .then(res => res.json())
+        .then(setAnnouncements)
+  }, [loading])
 
   // Fetch blogs
   useEffect(() => {
-    fetch('/api/blogs')
-      .then(res => res.json())
-      .then(setBlogs)
-  }, [])
+    if (!loading)
+      fetch('/api/blogs')
+        .then(res => res.json())
+        .then(setBlogs)
+  }, [loading])
 
   // Announcement handlers
   function handleAChange(e) {
@@ -108,6 +127,8 @@ export default function AdminPage() {
     })
     setBlogs(blogs.filter(b => b.id !== id))
   }
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>
 
   return (
     <div className="max-w-2xl mx-auto p-6">
