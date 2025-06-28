@@ -42,6 +42,12 @@ export default function Home() {
       >
         Go to Admin  Page
       </Link>
+      <Link
+        className="mt-12 bg-purple-500 hover:bg-purple-600 text-white text-lg font-semibold px-8 py-3 rounded-3xl shadow-lg transition"
+        href="/blog"
+      >
+        Go to Blog  Page
+      </Link>
     </div>
   )
 }
