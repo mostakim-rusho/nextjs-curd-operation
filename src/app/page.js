@@ -22,7 +22,7 @@ export default function Home() {
           {announcements.map(a => (
             <div
               className="bg-amber-200 border border-amber-300 rounded-2xl shadow-md px-6 py-4"
-              key={a.id}
+              key={a._id}
             >
               <h2 className="text-xl font-semibold text-amber-800">{a.title}</h2>
               <p className="mt-2 text-gray-700">{a.content}</p>

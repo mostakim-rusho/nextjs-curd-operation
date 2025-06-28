@@ -1,41 +1,57 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs/promises'
-import path from 'path'
+import { MongoClient, ServerApiVersion, ObjectId } from 'mongodb'
 
-const DATA_PATH = path.join(process.cwd(), 'data', 'blogs.json')
+const uri = "mongodb+srv://bayfi:ix0tHxYPt1M7eVpR@cluster0.wdeeaxn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+const dbName = "bayfi" // use your preferred DB name
 
-export async function GET() {
-  try {
-    const data = await fs.readFile(DATA_PATH, 'utf-8')
-    return NextResponse.json(JSON.parse(data))
-  } catch {
-    return NextResponse.json([])
+let client
+async function connectMongo() {
+  if (!client) {
+    client = new MongoClient(uri, {
+      serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true }
+    })
+    await client.connect()
   }
+  return client.db(dbName)
 }
 
+// GET all blogs
+export async function GET() {
+  const db = await connectMongo()
+  const data = await db.collection('blogs').find({}).sort({ createdAt: -1 }).toArray()
+  return NextResponse.json(data)
+}
+
+// POST create blog
 export async function POST(request) {
   const body = await request.json()
-  const data = JSON.parse(await fs.readFile(DATA_PATH, 'utf-8'))
-  const newBlog = { ...body, id: Date.now() }
-  data.push(newBlog)
-  await fs.writeFile(DATA_PATH, JSON.stringify(data, null, 2))
+  const db = await connectMongo()
+  const newBlog = { ...body, createdAt: new Date() }
+  const result = await db.collection('blogs').insertOne(newBlog)
+  newBlog._id = result.insertedId
   return NextResponse.json(newBlog)
 }
 
+// PUT update blog
 export async function PUT(request) {
   const body = await request.json()
-  const data = JSON.parse(await fs.readFile(DATA_PATH, 'utf-8'))
-  const idx = data.findIndex(item => item.id === body.id)
-  if (idx === -1) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  data[idx] = body
-  await fs.writeFile(DATA_PATH, JSON.stringify(data, null, 2))
-  return NextResponse.json(body)
+  const db = await connectMongo()
+  const { _id, ...rest } = body
+  const result = await db.collection('blogs').findOneAndUpdate(
+    { _id: new ObjectId(_id) },
+    { $set: rest },
+    { returnDocument: 'after' }
+  )
+  if (!result.value) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  return NextResponse.json(result.value)
 }
 
+// DELETE blog
 export async function DELETE(request) {
   const { id } = await request.json()
-  let data = JSON.parse(await fs.readFile(DATA_PATH, 'utf-8'))
-  data = data.filter(item => item.id !== id)
-  await fs.writeFile(DATA_PATH, JSON.stringify(data, null, 2))
+  const db = await connectMongo()
+  const result = await db.collection('blogs').deleteOne({ _id: new ObjectId(id) })
+  if (result.deletedCount === 0)
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json({ success: true })
 }

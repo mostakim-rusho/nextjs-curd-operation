@@ -25,7 +25,7 @@ export default function BlogPage() {
         <div className="space-y-6">
           {blogs.map(blog => (
             <div
-              key={blog.id}
+              key={blog._id}
               className="bg-blue-200 border border-blue-300 rounded-2xl shadow-md px-6 py-4"
             >
               <h2 className="text-xl font-semibold text-blue-900">{blog.title}</h2>

@@ -1,39 +1,58 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs/promises'
-import path from 'path'
+import { MongoClient, ServerApiVersion, ObjectId } from 'mongodb'
 
-const DATA_PATH = path.join(process.cwd(), 'data', 'announcements.json')
+const uri = "mongodb+srv://bayfi:ix0tHxYPt1M7eVpR@cluster0.wdeeaxn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+const dbName = "bayfi" // You can use any db name you like
 
-export async function GET() {
-  const data = await fs.readFile(DATA_PATH, 'utf-8')
-  return NextResponse.json(JSON.parse(data))
+// Global client reuse (avoid multiple connections)
+let client
+async function connectMongo() {
+  if (!client) {
+    client = new MongoClient(uri, {
+      serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true }
+    })
+    await client.connect()
+  }
+  return client.db(dbName)
 }
 
+// GET all
+export async function GET() {
+  const db = await connectMongo()
+  const data = await db.collection('announcements').find({}).sort({ createdAt: -1 }).toArray()
+  return NextResponse.json(data)
+}
+
+// POST create
 export async function POST(request) {
   const body = await request.json()
-  const data = JSON.parse(await fs.readFile(DATA_PATH, 'utf-8'))
-  const newAnnouncement = { ...body, id: Date.now() }
-  data.push(newAnnouncement)
-  await fs.writeFile(DATA_PATH, JSON.stringify(data, null, 2))
+  const db = await connectMongo()
+  const newAnnouncement = { ...body, createdAt: new Date() }
+  const result = await db.collection('announcements').insertOne(newAnnouncement)
+  newAnnouncement._id = result.insertedId
   return NextResponse.json(newAnnouncement)
 }
 
-// Update by id
+// PUT update
 export async function PUT(request) {
   const body = await request.json()
-  const data = JSON.parse(await fs.readFile(DATA_PATH, 'utf-8'))
-  const idx = data.findIndex(item => item.id === body.id)
-  if (idx === -1) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  data[idx] = body
-  await fs.writeFile(DATA_PATH, JSON.stringify(data, null, 2))
-  return NextResponse.json(body)
+  const db = await connectMongo()
+  const { _id, ...rest } = body
+  const result = await db.collection('announcements').findOneAndUpdate(
+    { _id: new ObjectId(_id) },
+    { $set: rest },
+    { returnDocument: 'after' }
+  )
+  if (!result.value) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  return NextResponse.json(result.value)
 }
 
-// Delete by id
+// DELETE
 export async function DELETE(request) {
   const { id } = await request.json()
-  let data = JSON.parse(await fs.readFile(DATA_PATH, 'utf-8'))
-  data = data.filter(item => item.id !== id)
-  await fs.writeFile(DATA_PATH, JSON.stringify(data, null, 2))
+  const db = await connectMongo()
+  const result = await db.collection('announcements').deleteOne({ _id: new ObjectId(id) })
+  if (result.deletedCount === 0)
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json({ success: true })
 }

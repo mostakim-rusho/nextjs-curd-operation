@@ -61,9 +61,9 @@ export default function AdminPage() {
     setAnnouncements([...announcements, newItem])
     setAForm({ title: '', content: '' })
   }
-  function handleAEdit(id) {
-    setAEditId(id)
-    const item = announcements.find(a => a.id === id)
+  function handleAEdit(_id) {
+    setAEditId(_id)
+    const item = announcements.find(a => a._id === _id)
     setAForm({ title: item.title, content: item.content })
   }
   async function handleAUpdate(e) {
@@ -71,20 +71,20 @@ export default function AdminPage() {
     const res = await fetch('/api/announcements', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...aForm, id: aEditId })
+      body: JSON.stringify({ ...aForm, _id: aEditId })
     })
     const updated = await res.json()
-    setAnnouncements(announcements.map(a => a.id === aEditId ? updated : a))
+    setAnnouncements(announcements.map(a => a._id === aEditId ? updated : a))
     setAForm({ title: '', content: '' })
     setAEditId(null)
   }
-  async function handleADelete(id) {
+  async function handleADelete(_id) {
     await fetch('/api/announcements', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id })
+      body: JSON.stringify({ id: _id })
     })
-    setAnnouncements(announcements.filter(a => a.id !== id))
+    setAnnouncements(announcements.filter(a => a._id !== _id))
   }
 
   // Blog handlers
@@ -102,9 +102,9 @@ export default function AdminPage() {
     setBlogs([...blogs, newItem])
     setBForm({ title: '', content: '' })
   }
-  function handleBEdit(id) {
-    setBEditId(id)
-    const item = blogs.find(b => b.id === id)
+  function handleBEdit(_id) {
+    setBEditId(_id)
+    const item = blogs.find(b => b._id === _id)
     setBForm({ title: item.title, content: item.content })
   }
   async function handleBUpdate(e) {
@@ -112,20 +112,20 @@ export default function AdminPage() {
     const res = await fetch('/api/blogs', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...bForm, id: bEditId })
+      body: JSON.stringify({ ...bForm, _id: bEditId })
     })
     const updated = await res.json()
-    setBlogs(blogs.map(b => b.id === bEditId ? updated : b))
+    setBlogs(blogs.map(b => b._id === bEditId ? updated : b))
     setBForm({ title: '', content: '' })
     setBEditId(null)
   }
-  async function handleBDelete(id) {
+  async function handleBDelete(_id) {
     await fetch('/api/blogs', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id })
+      body: JSON.stringify({ id: _id })
     })
-    setBlogs(blogs.filter(b => b.id !== id))
+    setBlogs(blogs.filter(b => b._id !== _id))
   }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>
@@ -145,10 +145,10 @@ export default function AdminPage() {
         </form>
         <ul>
           {announcements.map(a => (
-            <li key={a.id} className="mb-1">
+            <li key={a._id} className="mb-1">
               <b>{a.title}:</b> {a.content}
-              <button onClick={() => handleAEdit(a.id)} className="ml-2 bg-yellow-400 px-2 rounded">Edit</button>
-              <button onClick={() => handleADelete(a.id)} className="ml-2 bg-red-500 text-white px-2 rounded">Delete</button>
+              <button onClick={() => handleAEdit(a._id)} className="ml-2 bg-yellow-400 px-2 rounded">Edit</button>
+              <button onClick={() => handleADelete(a._id)} className="ml-2 bg-red-500 text-white px-2 rounded">Delete</button>
             </li>
           ))}
         </ul>
@@ -165,10 +165,10 @@ export default function AdminPage() {
         </form>
         <ul>
           {blogs.map(b => (
-            <li key={b.id} className="mb-1">
+            <li key={b._id} className="mb-1">
               <b>{b.title}:</b> {b.content}
-              <button onClick={() => handleBEdit(b.id)} className="ml-2 bg-yellow-400 px-2 rounded">Edit</button>
-              <button onClick={() => handleBDelete(b.id)} className="ml-2 bg-red-500 text-white px-2 rounded">Delete</button>
+              <button onClick={() => handleBEdit(b._id)} className="ml-2 bg-yellow-400 px-2 rounded">Edit</button>
+              <button onClick={() => handleBDelete(b._id)} className="ml-2 bg-red-500 text-white px-2 rounded">Delete</button>
             </li>
           ))}
         </ul>
