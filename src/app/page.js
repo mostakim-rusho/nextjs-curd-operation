@@ -34,13 +34,13 @@ export default function Home() {
         className="mt-12 bg-purple-500 hover:bg-purple-600 text-white text-lg font-semibold px-8 py-3 rounded-3xl shadow-lg transition"
         href="/login"
       >
-        Go to Admin Login
+        Go to Login Page
       </Link>
       <Link
         className="mt-12 bg-purple-500 hover:bg-purple-600 text-white text-lg font-semibold px-8 py-3 rounded-3xl shadow-lg transition"
         href="/admin"
       >
-        Go to Admin 
+        Go to Admin  Page
       </Link>
     </div>
   )
